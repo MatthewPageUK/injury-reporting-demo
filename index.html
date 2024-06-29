@@ -1,0 +1,783 @@
+<html>
+    <head>
+        <title>Matthew Page Web Developer - Injury Reporting System</title>
+        <meta name="description" content="Example interactive injury reporting page using AlpineJS and Tailwind CSS. By Matthew Page - www.mjp.co">
+        <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body class="bg-zinc-100">
+        <div x-data="{
+                injuryTypes: [
+                    {name: 'Bruising', value: 'bruise'},
+                    {name: 'Scratch / graze', value: 'scratch'},
+                    {name: 'Minor cut', value: 'minorcut'},
+                    {name: 'Minor burn', value: 'minorburn'},
+                    {name: 'Sprain', value: 'sprain'},
+                    {name: 'Serious cut / wound', value: 'seriouscut'},
+                    {name: 'Dislocation', value: 'disc'},
+                    {name: 'Break or fracture', value: 'frac'},
+                    {name: 'Serious burns', value: 'seriousburns'},
+                    {name: 'Amputation', value: 'amputation'},
+                ],
+                bodyParts: [
+                    {value: 0, name: 'Select Part'},
+                    {value: 1, name: 'Head Front Right'},
+                    {value: 2, name: 'Head Front Left'},
+                    {value: 3, name: 'Neck / Throat Front'},
+                    {value: 4, name: 'Shoulder Front Right'},
+                    {value: 5, name: 'Shoulder Front Left'},
+                    {value: 6, name: 'Upper Arm Front Right'},
+                    {value: 7, name: 'Upper Arm Front Left'},
+                    {value: 8, name: 'Lower Arm Front Right'},
+                    {value: 9, name: 'Lower Arm Front Left'},
+                    {value: 10, name: 'Hand / Palm Front Right'},
+                    {value: 11, name: 'Hand / Palm Front Left'},
+                    {value: 12, name: 'Chest Front Right'},
+                    {value: 13, name: 'Chest Front Left'},
+                    {value: 14, name: 'Abdomen Front Right'},
+                    {value: 15, name: 'Abdomen Front Left'},
+                    {value: 16, name: 'Groin'},
+                    {value: 17, name: 'Upper Leg / Thigh Right'},
+                    {value: 18, name: 'Upper Leg / Thigh Left'},
+                    {value: 19, name: 'Lower Leg Front Right'},
+                    {value: 20, name: 'Lower Leg Front Left'},
+                    {value: 21, name: 'Foot Upper Right'},
+                    {value: 22, name: 'Foot Upper Left'},
+                    {value: 23, name: 'Head Rear Left'},
+                    {value: 24, name: 'Head Rear Right'},
+                    {value: 25, name: 'Neck Rear'},
+                    {value: 26, name: 'Shoulder Rear Left'},
+                    {value: 27, name: 'Shoulder Rear Right'},
+                    {value: 28, name: 'Upper Arm Rear Left'},
+                    {value: 29, name: 'Upper Arm Rear Right'},
+                    {value: 30, name: 'Lower Arm Rear Left'},
+                    {value: 31, name: 'Lower Arm Rear Right'},
+                    {value: 32, name: 'Hand Rear Left'},
+                    {value: 33, name: 'Hand Rear Right'},
+                    {value: 34, name: 'Chest Rear Left'},
+                    {value: 35, name: 'Chest Rear Right'},
+                    {value: 36, name: 'Abdomen Rear Left'},
+                    {value: 37, name: 'Abdomen Rear Right'},
+                    {value: 38, name: 'Buttocks Left'},
+                    {value: 39, name: 'Buttocks Right'},
+                    {value: 40, name: 'Upper Leg Rear Left'},
+                    {value: 41, name: 'Upper Leg Rear Right'},
+                    {value: 42, name: 'Lower Leg / Calf Rear Left'},
+                    {value: 43, name: 'Lower Leg / Calf Rear Right'},
+                    {value: 44, name: 'Foot Sole / Heal Left'},
+                    {value: 45, name: 'Foot Sole / Heal Right'},
+                    {value: 46, name: 'Lower Back'},
+                    {value: 47, name: 'Ankle Left'},
+                    {value: 48, name: 'Ankle Right'},
+                    {value: 49, name: 'Knee Right'},
+                    {value: 50, name: 'Knee Left'},
+                ],
+
+                injuries: [],
+
+                selectedPart: 0,
+
+                image: 'body-nonum.jpg',
+
+                toolTip: null,
+
+                selectPart: function (id) {
+                    this.selectedPart = this.selectedPart === id ? 0 : id;
+                },
+
+                isPartSelected: function (id) {
+                    return this.selectedPart === id;
+                },
+
+                isInjured: function (id) {
+                    return this.injuryTypes.some(type => this.injuries[id][type.value]) || this.injuries[id].description;
+                },
+
+                anyInjuries: function () {
+                    return this.injuries.some(injury => this.injuryTypes.some(type => injury[type.value]) || injury.description);
+                },
+
+                getInjury: function (id) {
+                    return {
+                        'injuries': this.injuryTypes.filter(type => this.injuries[id][type.value]).map(type => type.name).join(', '),
+                        'description': this.injuries[id].description,
+                    };
+                },
+
+                submitReport: function () {
+                    const report = this.injuries.map((injury, id) => {
+                        return {
+                            part: this.bodyParts[id].name,
+                            ...this.getInjury(id),
+                        };
+                    }).filter(injury => injury.injuries || injury.description);
+                    console.log(report);
+                },
+
+                moveTooltip: function (event) {
+                    if (this.toolTip === null) return;
+                    const followDiv = this.$refs.followDiv;
+                    followDiv.style.left = `${event.clientX + 10}px`;
+                    followDiv.style.top = `${event.clientY + 10}px`;
+                },
+
+                hideTooltip: function () {
+                    this.toolTip = null;
+                },
+
+                showTooltip: function (event, id) {
+                    this.toolTip = this.bodyParts[id].name;
+                },
+            }"
+            x-init="
+                injuries = Array.from({length: 51}, () => {
+                    const injuryObj = {};
+                    injuryTypes.forEach(type => {
+                        injuryObj[type.value] = false;
+                    });
+                    injuryObj['description'] = '';
+                    return injuryObj;
+                });
+            "
+            class="min-h-screen grid md:items-center md:justify-items-center xxbg-white md:p-8"
+            x-on:mousemove.window="moveTooltip($event)"
+        >
+            <div x-ref="followDiv" x-show="toolTip" x-text="toolTip" class="absolute text-sm font-semibold py-2 px-4 rounded-lg bg-zinc-200 border-zinc-400 border z-50"></div>
+
+            <div class="w-full max-w-7xl grid grid-cols-3 border-2 border-green-800 pb-4 md:rounded-lg auto-rows-min overflow-hidden bg-white shadow-xl">
+
+                <!-- Header -->
+                <h1 class="col-span-3 flex tracking-tight text-lg md:text-4xl font-bold text-center mb-8 lg:mb-4 py-4 bg-green-800 text-white">
+                    <span class="flex-1">Injury Reporting System 👨‍⚕️</span>
+                    <span>
+                        <!-- Image select -->
+                        <select x-model="image" class="max-w-24 md:max-w-64 flex-none mr-4 text-sm font-light bg-green-800 border-none focus:ring-green-800">
+                            <option value="body-nonum.jpg">Plain Body</option>
+                            <option value="body.jpg">With numbers</option>
+                            <option value="body-blank.jpg">Blank</option>
+                            <option value="body-hospital-1.jpg">Hospital</option>
+                            <option value="body-skeleton.jpg">Skeleton</option>
+                            <option value="body-shadow.jpg">Shadow</option>
+                            <option value="body-zen.jpg">Zen</option>
+                        </select>
+                    </span>
+                </h1>
+
+                <!-- Diagram Wrapper -->
+                <div class="col-span-3 md:col-span-2 relative max-w-4xl bg-white rounded-lg overflow-hidden px-4" >
+
+                    <!-- Image -->
+                    <img :src="image" alt="front" class="ml-0.5 w-full h-auto">
+
+                    <!-- SVG -->
+                    <div class="absolute top-0 left-0 w-full px-4" >
+
+                        <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                            width="100%" viewBox="0 0 848 608" enable-background="new 0 0 848 608" xml:space="preserve">
+                            <path
+                                x-data="{part: 22}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M237.468658,609.000000  C232.921951,601.248962 226.229965,596.586426 218.356720,593.407166  C212.230057,590.933105 208.884079,579.211243 212.866516,573.972168  C213.431824,573.228516 214.108475,572.740723 214.916656,572.805481  C219.504074,573.173340 223.637375,570.939758 228.083481,570.588318  C235.430405,570.007751 241.200623,573.266479 244.968597,579.141968  C249.227051,585.782349 253.880356,591.260315 262.021423,593.140930  C266.018188,594.064331 268.681000,597.074707 270.186890,601.682739  C265.777344,600.773682 264.376648,595.222595 258.857513,595.776367  C262.529053,601.822632 268.395142,604.267578 272.784973,608.741211  C261.312439,609.000000 249.624878,609.000000 237.468658,609.000000  z"/>
+                            <path
+                                x-data="{part: 21}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M144.468658,609.000000  C144.858963,607.101807 146.699158,605.730835 145.069763,602.932373  C144.204086,601.445496 146.160095,598.855408 147.577072,597.257263  C154.705627,589.217102 162.632065,581.878845 168.189560,572.479675  C169.281311,570.633179 172.211487,570.382385 174.579041,570.164795  C179.618179,569.701477 184.561447,570.463135 189.413528,571.591187  C194.190750,572.701904 196.075027,579.917908 193.501465,586.013000  C192.017105,589.528503 189.277924,592.009583 186.557083,594.412598  C182.194458,598.265625 179.040314,602.804321 177.166534,608.678955  C166.312439,609.000000 155.624878,609.000000 144.468658,609.000000  z"/>
+                            <path
+                                x-data="{part: 45}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M667.468384,609.000000  C665.971130,605.185730 664.592712,601.528809 664.544983,597.406311  C664.495850,593.154968 666.311035,591.113770 670.170471,590.815857  C677.360779,590.260864 684.208252,588.593079 690.641357,585.318420  C692.074036,584.589294 693.473450,584.703308 694.984619,585.038086  C701.605713,586.504822 708.310303,587.296448 715.084167,587.742920  C718.649902,587.977966 723.058411,588.226868 723.895691,592.625122  C724.690308,596.798889 721.892822,599.503113 718.113098,601.423889  C711.829102,604.617249 704.942688,604.294617 698.296204,605.301453  C694.508118,605.875366 690.740173,606.200073 687.262878,608.772522  C680.645569,609.000000 674.291199,609.000000 667.468384,609.000000  z"/>
+                            <path
+                                x-data="{part: 44}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M623.468628,609.000000  C620.111511,605.277893 615.256348,605.627380 611.568298,603.502686  C608.272461,601.604065 604.634949,600.307556 601.276306,598.506409  C596.969055,596.196472 594.885986,592.337097 594.711243,587.537903  C594.557556,583.319092 597.195740,581.065125 601.355286,581.864807  C605.573059,582.675842 609.729370,583.802612 613.938904,584.662659  C615.216125,584.923523 615.872314,585.454468 616.476624,586.637817  C618.003235,589.627319 620.591064,591.492188 623.920959,591.858704  C629.272644,592.447693 634.488098,594.510193 640.063049,592.880615  C644.083496,591.705383 647.076965,592.913574 648.306091,597.500366  C649.248840,601.018372 650.742920,604.384399 650.085144,608.574402  C641.312439,609.000000 632.624817,609.000000 623.468628,609.000000  z"/>
+                            <path
+                                x-data="{part: 17}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M156.538147,264.493652  C162.694443,271.544373 169.864227,276.966125 176.503540,282.973145  C182.908524,288.768219 188.185669,295.638702 192.381317,303.196777  C194.096481,306.286469 195.786560,309.430176 198.333755,311.735535  C202.598984,315.595856 203.350266,320.215668 203.455521,325.645874  C203.803955,343.621124 200.412537,361.354584 200.351562,379.282684  C200.316452,389.604248 197.747665,399.654541 197.250412,409.921356  C197.210587,410.744080 197.058197,411.552551 196.204468,412.037903  C184.020401,418.964264 163.046997,415.195038 159.614777,400.332428  C158.721283,396.463287 157.711288,392.580933 156.298523,388.878815  C150.339111,373.262299 146.926773,357.261932 146.368362,340.442322  C146.157730,334.097687 144.969025,327.433167 145.076218,321.175232  C145.303116,307.929779 145.022858,294.617706 146.427567,281.382843  C147.249512,273.638428 148.610672,266.067596 151.218201,258.480804  C153.971680,259.836639 154.768402,262.360657 156.538147,264.493652  z"/>
+                            <path
+                                x-data="{part: 18}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M206.653854,333.016144  C206.816818,317.741272 213.959808,306.308014 223.287521,295.374420  C231.105621,286.210358 240.369858,278.706177 248.831512,270.305908  C250.967285,268.185638 251.804291,264.713104 255.403427,263.505524  C257.930847,269.143494 258.391418,274.998199 259.085785,280.575714  C260.290131,290.249634 262.444305,299.814789 262.465881,309.659210  C262.499268,324.903992 261.818115,340.068573 259.969452,355.221466  C258.469788,367.513458 253.767105,378.906464 250.922318,390.809845  C250.266586,393.553589 250.670410,396.366699 249.449463,399.083313  C245.453491,407.974243 238.441315,411.972351 229.037491,412.316589  C225.715210,412.438171 222.352371,412.515198 219.061676,412.141022  C215.674820,411.755920 213.630447,410.274963 213.539948,406.029205  C213.229431,391.462433 212.811020,376.809265 210.376297,362.466949  C208.738663,352.820099 207.790054,343.153473 206.653854,333.016144  z"/>
+                            <path
+                                x-data="{part: 40}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M598.661499,331.106842  C598.845947,328.047119 598.222168,325.377594 599.391052,322.550751  C617.584534,339.303314 636.304688,334.662476 655.316284,324.702759  C656.805420,325.437531 656.270325,326.939728 656.314087,328.155396  C656.900940,344.452881 655.841980,360.643799 653.527283,376.791901  C652.659729,382.843994 652.455017,389.024628 652.400635,395.150726  C652.341370,401.816071 652.336243,408.480499 650.379272,414.886810  C647.945312,422.854584 650.617676,430.727234 650.412659,438.650848  C650.110229,450.336670 650.319946,450.344177 639.038757,450.342133  C632.375854,450.340912 625.710815,450.232269 619.050903,450.369507  C615.851807,450.435364 614.498718,449.245209 614.645508,446.003510  C614.803650,442.512817 614.441040,438.990997 614.711304,435.514282  C615.824280,421.195709 611.775085,408.012177 606.575623,394.927734  C603.269592,386.608215 601.695740,377.721008 600.761475,368.824554  C599.462585,356.455750 598.097961,344.070496 598.661499,331.106842  z"/>
+                            <path
+                                x-data="{part: 41}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M703.235413,401.918640  C700.826660,416.353882 697.805176,430.267151 696.397156,444.428955  C696.150940,446.905609 695.556213,448.516541 693.033508,449.180908  C685.799683,451.086121 678.597595,452.921021 670.971252,452.426880  C668.164368,452.244995 666.786316,451.385010 666.246338,448.597656  C665.091858,442.637939 664.876709,436.455414 665.962280,430.731445  C667.378357,423.265076 666.005188,416.078522 665.296936,408.950531  C664.608948,402.026276 664.483215,395.042877 663.983032,388.141876  C663.296204,378.663574 660.330811,369.576477 660.087097,360.152832  C659.770142,347.899261 660.009644,335.631256 660.009644,322.210327  C679.714966,333.645844 696.745911,329.214508 712.496582,313.602814  C713.492249,320.093109 715.168884,325.132538 714.177429,330.124664  C712.444153,338.852600 713.387817,347.669525 712.626953,356.433044  C711.470947,369.748291 709.481201,382.708466 704.895813,395.263275  C704.162842,397.270172 703.815613,399.417877 703.235413,401.918640  z"/>
+                            <path
+                                x-data="{part: 5}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M244.078979,110.997955  C249.318771,109.698593 254.105270,108.262352 258.995605,107.455513  C280.808411,103.856682 291.228668,115.704262 294.264313,134.276138  C294.691650,136.890579 293.248932,137.974854 290.801575,138.793427  C281.953674,141.752808 273.413605,145.400558 266.252777,151.633713  C265.880005,151.958206 265.174255,152.100616 265.044312,152.474152  C262.382599,160.126709 255.895935,157.971939 250.546555,157.835022  C237.724838,157.506836 224.911774,157.496338 212.099731,157.929672  C208.104996,158.064789 206.455536,156.720917 206.572647,152.483276  C206.830231,143.161469 206.648254,133.827591 206.650635,124.498650  C206.652496,117.179558 212.195633,111.822487 219.744202,111.636681  C227.720200,111.440361 235.716492,112.230385 244.078979,110.997955  z"/>
+                            <path
+                                x-data="{part: 26}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M619.384888,155.604004  C610.075378,160.430511 600.706726,163.120178 590.390198,162.472824  C582.529236,161.979538 576.207764,158.541061 570.237549,153.910522  C568.684082,152.705643 568.368286,151.060455 568.747253,149.439911  C570.852661,140.436493 572.122009,131.268417 577.231873,123.092201  C586.122253,108.866951 596.618835,104.930222 612.175049,107.646004  C621.856201,109.336136 631.527527,109.871582 641.303528,109.194695  C653.350281,108.360603 653.294495,108.379036 653.373169,120.232780  C653.404053,124.879585 654.460022,129.954742 653.456726,134.065033  C652.384094,138.459045 645.645264,137.764954 641.920105,140.438202  C634.665222,145.644440 627.836243,151.504623 619.384888,155.604004  z"/>
+                            <path
+                                x-data="{part: 38}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M602.565247,320.210144  C595.834961,311.220764 599.734131,301.691742 600.175781,292.472778  C600.682617,281.895691 606.111328,272.520233 607.775208,262.213074  C608.020935,260.690735 609.054443,260.090637 610.417969,259.601379  C620.670044,255.922791 639.204590,255.978363 645.643616,269.998322  C647.586853,274.229309 650.598572,278.238373 654.203308,281.532562  C655.767639,282.962158 656.359924,284.774719 656.351074,286.905029  C656.311157,296.556793 656.388428,306.209137 656.332153,315.860748  C656.299744,321.423309 652.120544,324.082275 647.995056,326.052795  C638.648621,330.517181 628.687195,331.047455 618.471008,329.774231  C611.758972,328.937744 606.639160,325.906525 602.565247,320.210144  z"/>
+                            <path
+                                x-data="{part: 4}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M162.409683,157.441330  C159.456726,157.589752 156.963959,157.824173 154.469772,157.840500  C150.299988,157.867813 147.139099,157.494049 144.769653,152.516403  C141.964325,146.623032 135.420349,143.854141 129.357330,141.386185  C125.695267,139.895554 121.984001,138.525757 117.707260,136.874863  C121.625008,127.986328 123.262543,118.408577 131.323120,112.245483  C139.353424,106.105537 148.515884,107.024124 157.607254,108.443291  C161.662903,109.076378 165.645187,110.374893 169.559296,111.676529  C176.689606,114.047714 183.718750,111.197182 190.817657,111.502586  C197.063156,111.771278 203.343933,117.361488 203.347244,123.475464  C203.352570,133.307617 203.229248,143.141663 203.393890,152.970993  C203.456955,156.735535 201.952332,158.063354 198.343719,157.798645  C186.529465,156.931931 174.694580,157.546936 162.409683,157.441330  z"/>
+                            <path
+                                x-data="{part: 20}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M241.215515,449.149719  C249.178726,450.667938 247.722778,457.129059 248.190475,461.896729  C249.514191,475.390991 246.411026,488.628357 244.986649,501.962952  C243.488281,515.990173 240.138184,529.621338 236.780746,543.289429  C235.500839,548.499878 235.642426,554.190125 237.481247,559.553467  C237.906235,560.793030 238.137314,562.117798 238.305939,563.422974  C238.792145,567.186279 237.928513,569.138916 233.289597,568.949219  C227.446915,568.710327 221.558502,569.589355 215.516907,569.997742  C213.525070,565.748779 216.756653,562.260559 216.928085,558.398682  C217.692139,541.187378 219.768341,523.909180 214.099091,507.092743  C208.250595,489.744690 208.151413,472.319214 212.636871,454.696289  C213.298203,452.097931 215.071228,451.427673 217.163483,450.710571  C224.902847,448.057922 232.847931,448.398987 241.215515,449.149719  z"/>
+                            <path
+                                x-data="{part: 19}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M195.337952,459.120148  C196.009705,463.627625 196.467453,467.750702 197.375534,471.772125  C200.343323,484.914886 196.008057,497.338470 194.027878,510.034576  C192.400177,520.470703 191.588547,531.032410 190.326935,541.527832  C189.330688,549.815430 190.136948,557.962463 191.954453,566.048584  C192.702850,569.378235 190.584305,569.731628 188.212463,569.597107  C183.237274,569.314819 178.274185,568.791260 173.297058,568.581909  C170.488571,568.463867 169.589706,567.200256 169.629318,564.525146  C169.732803,557.537903 169.754623,550.546326 169.630234,543.559631  C169.441010,532.932617 167.571625,522.557617 165.187576,512.203918  C162.558151,500.784576 160.973862,489.158264 159.582214,477.508728  C158.870361,471.549835 158.525223,465.711395 159.549408,459.739594  C159.988922,457.176941 160.905090,455.309937 163.001434,454.065765  C172.544327,448.402252 182.198441,449.083130 191.836945,453.804779  C193.802292,454.767548 195.651855,456.001587 195.337952,459.120148  z"/>
+                            <path
+                                x-data="{part: 42}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M642.341614,559.064819  C642.343018,560.881531 642.345154,562.214539 642.344727,563.547607  C642.342041,572.002686 641.872253,572.431519 633.229797,571.873596  C624.446655,571.306580 624.277954,571.318909 623.645569,562.635254  C622.417358,545.769653 619.613770,529.205383 616.198486,512.628113  C612.729736,495.791534 610.203247,478.669739 615.312744,461.414673  C617.552246,453.851807 616.905762,453.660309 625.006042,453.660217  C632.470154,453.660156 639.934204,453.660217 647.968689,453.660217  C646.252258,465.882202 648.290100,477.208832 650.185059,488.642181  C652.151611,500.507416 648.137146,511.965790 646.157166,523.550415  C644.177124,535.136047 642.811646,546.817078 642.341614,559.064819  z"/>
+                            <path
+                                x-data="{part: 27}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M706.762451,160.523956  C699.364136,157.725571 693.277588,153.627380 687.549133,148.758133  C679.945557,142.294952 670.671936,139.033859 661.182556,136.490158  C659.228699,135.966431 657.691162,135.707077 657.704163,133.255615  C657.744751,125.626953 657.719055,117.997940 657.719055,109.997719  C669.832886,108.735718 681.585327,108.823288 693.338684,109.372696  C696.844971,109.536606 700.305725,110.047859 703.568787,108.214287  C704.123962,107.902313 704.832825,107.803253 705.484497,107.732491  C717.420959,106.436203 733.557129,116.836258 737.361328,128.287247  C739.085510,133.476913 740.851807,138.655838 742.417847,143.893799  C743.855835,148.703781 739.481812,150.917877 737.284302,153.835526  C729.281128,164.461792 718.794373,165.457779 706.762451,160.523956  z"/>
+                            <path
+                                x-data="{part: 15}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M206.746460,177.737213  C208.082352,174.536774 209.555679,175.335266 211.370682,176.894913  C215.065353,180.069733 216.795105,184.385986 218.406326,188.725739  C222.266251,199.122238 224.964035,209.987320 231.867264,219.074890  C235.569519,223.948669 239.590805,228.183243 245.696991,229.845001  C250.318359,231.102692 252.354187,234.196503 252.339859,238.875000  C252.321564,244.854004 253.192291,250.740738 254.185638,256.622986  C254.577728,258.944763 254.135864,260.782227 251.955811,262.674957  C247.724716,266.348419 244.094055,270.723907 240.294418,274.881439  C234.653458,281.053802 228.268250,284.110931 219.352997,283.597382  C204.701584,282.753510 204.743591,283.378876 204.631409,268.882599  C204.485901,250.080978 204.314896,231.251770 205.846497,212.524612  C206.785583,201.042297 206.223038,189.605515 206.746460,177.737213  z"/>
+                            <path
+                                x-data="{part: 43}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M665.934021,472.266418  C667.401855,466.944031 669.518127,462.127625 667.630432,455.867065  C677.735901,456.364258 686.925232,453.886017 696.255493,451.547943  C698.017456,455.520294 698.054871,459.288177 698.493286,463.041229  C699.744019,473.746643 701.035950,484.419220 699.296021,495.191681  C696.817749,510.535950 695.860474,526.116577 692.273010,541.284912  C690.520508,548.694763 687.677429,555.889343 688.264648,563.715759  C688.377380,565.218384 687.579041,566.261963 686.255005,566.863647  C682.126526,568.739868 677.814087,569.854248 673.251038,569.790405  C670.463989,569.751404 669.622131,568.136475 669.649902,565.541321  C669.726562,558.377686 669.398132,551.200562 669.722229,544.051025  C670.149109,534.634644 668.793213,525.522400 666.240906,516.517761  C662.109863,501.942932 662.877563,487.311096 665.934021,472.266418  z"/>
+                            <path
+                                x-data="{part: 14}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M165.925766,270.059937  C160.245651,265.243622 155.639587,260.075348 154.417953,252.797852  C153.417374,246.837250 155.138153,241.026642 155.923004,235.176926  C155.990158,234.676331 156.672470,234.151581 157.189301,233.833496  C172.646347,224.321030 182.903625,210.820419 188.789780,193.687103  C190.748779,187.984879 192.217758,181.810013 197.319641,177.642227  C198.600830,176.595627 199.529633,175.014832 201.513947,175.596466  C203.724670,176.244476 203.241058,178.175995 203.306534,179.756638  C204.091873,198.718445 202.494553,217.641937 202.052368,236.578003  C201.742447,249.850143 200.882141,263.061432 202.257889,276.318604  C202.944687,282.937012 202.257080,282.468933 195.666275,283.544525  C183.500809,285.529846 175.117126,280.024414 167.644058,271.674225  C167.201431,271.179657 166.687088,270.749268 165.925766,270.059937  z"/>
+                            <path
+                                x-data="{part: 35}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M707.906799,163.931290  C713.129333,168.176651 715.732727,172.740845 713.879272,179.596924  C712.073486,186.276871 711.429016,193.246964 709.091248,199.857834  C706.829651,206.253220 705.014160,212.806366 702.848572,219.787323  C695.271240,218.056320 688.621155,214.245697 682.287781,210.380035  C673.835876,205.221191 665.773987,199.287506 659.767578,191.063675  C658.407227,189.201157 657.645447,187.452698 657.652710,185.176788  C657.696411,171.535324 657.724426,157.893234 657.630310,144.252243  C657.604736,140.547562 658.635254,139.246109 662.652161,140.111725  C672.089783,142.145447 680.559875,146.043549 688.035583,152.075607  C694.011108,156.897125 700.468018,160.855026 707.906799,163.931290  z"/>
+                            <path
+                                x-data="{part: 39}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M691.540222,324.095520  C681.569397,326.500000 672.435242,325.885498 663.906311,320.425629  C660.973938,318.548431 659.538696,316.249115 659.599182,312.656097  C659.756104,303.340179 659.787720,294.016083 659.569153,284.702271  C659.445190,279.421539 662.908264,276.176056 665.740112,272.624115  C669.078064,268.437286 670.541931,262.448914 676.242981,260.474670  C684.627808,257.571045 693.209595,258.219940 701.797180,259.653473  C703.709473,259.972687 704.100586,261.032715 704.381958,262.670258  C706.648499,275.858704 709.110474,289.014465 711.270081,302.219940  C712.622681,310.490570 708.013428,315.796906 701.439758,319.657501  C698.456482,321.409485 695.117737,322.556091 691.540222,324.095520  z"/>
+                            <path
+                                x-data="{part: 34}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M653.340820,151.111206  C653.766418,163.550278 653.192444,175.508286 653.741272,187.488907  C653.982605,192.757187 648.951050,197.213806 644.573303,200.508224  C637.432068,205.882187 629.857910,210.677063 622.596008,215.896530  C620.223389,217.601837 617.618652,218.473663 614.936890,219.326981  C609.547241,221.041885 608.035339,220.406967 607.810486,214.878632  C607.313721,202.668549 603.573364,191.123184 601.168884,179.306885  C599.695129,172.064697 603.127869,165.188995 610.157837,162.705154  C621.433167,158.721375 631.240051,152.274490 640.700745,145.183884  C643.635498,142.984360 646.602722,140.975143 650.324951,140.203552  C653.065613,139.635406 654.071167,140.210526 653.657532,143.156677  C653.312622,145.613602 653.428528,148.135223 653.340820,151.111206  z"/>
+                            <path
+                                x-data="{part: 30}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M568.157959,217.864578  C562.416077,232.699265 552.607117,244.352829 542.855164,256.074646  C535.405945,265.028656 528.818115,274.560852 524.338928,285.424164  C523.539368,287.363312 522.872498,289.509949 520.697937,291.069183  C515.477112,288.675568 511.516846,284.321960 506.795898,281.082397  C505.538971,280.219879 505.303284,278.688080 506.374084,277.569794  C514.352173,269.237976 515.262634,257.772400 519.698792,247.876999  C527.361450,230.784439 534.418213,213.319992 547.698181,199.007416  C554.433472,203.344162 561.268982,207.632462 567.967407,212.125229  C570.061584,213.529861 569.291931,215.636749 568.157959,217.864578  z"/>
+                            <path
+                                x-data="{part: 12}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M155.834015,217.450272  C156.085953,198.958557 152.631805,181.417480 148.355103,164.027191  C147.412323,160.193588 148.606506,159.126862 152.019775,159.119339  C167.844666,159.084412 183.669601,159.062531 199.494370,158.995438  C202.117859,158.984329 203.634399,159.826019 203.364624,162.771835  C203.213333,164.423874 203.192001,166.116165 203.365219,167.763702  C203.724991,171.185654 202.780243,173.306656 199.047226,174.263779  C192.801788,175.865082 190.600067,181.401978 188.434280,186.625473  C185.639420,193.366135 183.349762,200.303101 180.059433,206.856155  C177.864594,211.227386 175.023285,215.120483 171.517731,218.349503  C168.306259,221.307632 166.768158,225.606705 163.051987,228.059341  C161.094879,229.351013 158.992706,231.225296 156.748169,229.759445  C154.727875,228.440033 155.561096,225.747925 155.887634,223.707962  C156.204559,221.728226 156.930344,219.846985 155.834015,217.450272  z"/>
+                            <path
+                                x-data="{part: 13}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M226.000671,159.098633  C236.645142,159.092072 246.790009,159.039749 256.934204,159.098816  C262.327423,159.130234 262.681458,159.963715 261.845612,165.406540  C259.925903,177.906998 254.935486,189.551788 251.992493,201.770218  C250.311584,208.748825 249.270309,215.614899 250.245041,222.767670  C250.477798,224.475662 250.839584,226.415802 249.335358,228.228180  C240.825836,225.884308 235.428314,219.936050 231.350784,212.514725  C227.662384,205.801651 225.152542,198.583817 222.851212,191.316849  C220.333847,183.367706 217.368973,175.985474 208.371048,173.177429  C205.518784,172.287292 206.752350,169.482666 206.707947,167.530273  C206.516602,159.115479 206.591461,159.101974 215.024109,159.057556  C218.516159,159.039169 222.008545,159.083435 226.000671,159.098633  z"/>
+                            <path
+                                x-data="{part: 8}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M60.939632,243.080994  C64.300484,235.084137 67.560783,227.458084 70.697952,219.781738  C73.509155,212.903000 77.757454,207.057068 82.930290,201.781906  C84.866524,199.807373 86.528946,199.584549 88.309776,201.740677  C93.627335,208.178787 100.632156,211.634796 108.991043,213.046082  C108.492851,217.186111 106.794037,220.530060 105.053787,223.831161  C100.772408,231.952591 95.530884,239.347321 89.132820,246.005920  C79.611664,255.914780 70.468681,266.186401 60.994850,276.141937  C59.336422,277.884644 58.563591,280.012329 57.207539,282.061371  C52.775169,280.913971 47.861019,282.031189 44.054108,278.551178  C41.909531,276.590759 41.667530,275.429413 43.717655,272.540192  C50.226154,263.367798 56.846058,254.151764 60.939632,243.080994  z"/>
+                            <path
+                                x-data="{part: 6}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M89.691971,195.044952  C93.828979,188.939484 97.240257,182.902908 99.617020,176.276398  C102.485222,168.279709 106.324104,160.766556 110.932808,153.588974  C113.411644,149.728470 115.024826,145.312134 117.157745,140.878128  C125.684235,142.301941 133.127274,145.821228 139.815567,150.758026  C143.081543,153.168716 143.640564,156.688095 142.651596,161.031464  C139.425278,175.200928 130.241348,185.785095 122.033073,196.993332  C120.467468,199.131134 118.645172,201.079666 117.050514,203.197723  C110.985252,211.253708 110.961273,211.373596 101.561623,207.808304  C97.548309,206.286057 93.636917,204.401001 90.647476,201.092041  C89.103020,199.382492 87.887054,197.677551 89.691971,195.044952  z"/>
+                            <path
+                                x-data="{part: 7}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M284.778137,143.755569  C286.193634,143.204361 287.246002,142.717667 288.316223,142.274017  C293.878540,139.968094 294.620575,140.604523 297.673157,145.832291  C301.850677,152.986633 306.643127,159.781143 311.149750,166.744293  C316.284363,174.677689 317.744385,184.041870 321.055878,192.683365  C322.508240,196.473465 317.939514,202.346710 312.275513,204.645493  C309.236420,205.878967 305.936829,206.537369 302.702881,207.202805  C300.180511,207.721832 299.096680,205.654999 297.533875,204.096420  C285.320282,191.915771 278.536713,175.728317 267.035919,163.028488  C264.505280,160.233994 266.652191,154.262527 270.885223,151.116440  C275.046234,148.023865 279.775482,146.013412 284.778137,143.755569  z"/>
+                            <path
+                                x-data="{part: 9}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M352.078857,240.997742  C358.284882,250.985428 364.042297,260.845093 372.350189,269.357727  C367.129211,273.055206 361.424683,275.038879 356.833069,278.864777  C349.813202,272.089935 343.604828,265.013977 337.497498,257.813629  C334.087646,253.793503 330.181641,250.187744 326.058136,246.773071  C318.308411,240.355545 312.651886,232.184250 308.487091,223.004547  C306.776459,219.234192 303.155762,215.175873 303.733551,211.822159  C304.413452,207.875549 310.660248,209.132919 314.169312,207.087021  C318.148804,204.766861 321.299683,201.835861 323.811859,197.501633  C331.291351,203.291687 337.284546,209.340927 340.266693,217.695236  C343.186523,225.875092 347.048920,233.511887 352.078857,240.997742  z"/>
+                            <path
+                                x-data="{part: 31}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M772.575073,204.299591  C784.157959,216.004639 791.379272,229.845398 796.271973,245.015274  C799.550903,255.181717 803.684387,264.951447 810.044434,273.586945  C812.168762,276.471344 812.131348,278.396423 809.405945,280.701385  C807.514404,282.301239 805.961670,284.233704 803.603210,285.314117  C799.780396,287.065247 797.320557,286.865692 795.619751,282.222931  C793.059998,275.235565 787.569946,270.084595 782.611877,264.810059  C772.847900,254.422974 764.842529,243.003021 759.675415,229.676102  C757.485596,224.028046 753.549072,219.499603 749.415588,214.014816  C756.918274,212.103073 762.210510,207.527573 767.308411,202.595322  C769.421570,200.550812 770.852783,202.815201 772.575073,204.299591  z"/>
+                            <path
+                                x-data="{part: 37}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M696.937866,255.487701  C689.880310,255.264450 683.228760,255.008240 676.756470,257.079102  C673.063904,258.260590 670.753845,255.477707 668.445679,253.590759  C665.902161,251.511459 663.697876,249.032227 660.950317,247.112762  C658.101074,245.122253 657.283508,242.502075 657.442139,238.662201  C657.957825,226.187378 657.645447,213.678329 657.651489,201.182449  C657.652405,199.209808 657.651611,197.237167 657.651611,194.175583  C661.526978,197.415054 664.732178,199.854202 667.662109,202.588257  C676.642761,210.968353 686.988464,217.139877 698.275818,221.804123  C701.076843,222.961548 702.095642,224.240372 701.628174,227.744827  C700.616821,235.326599 701.491516,242.966736 703.078552,250.493942  C704.221802,255.916275 702.895325,257.015686 696.937866,255.487701  z"/>
+                            <path
+                                x-data="{part: 36}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M641.710815,205.682236  C645.609192,202.380630 649.926697,200.085297 652.664429,195.013992  C654.179382,198.107239 653.220703,200.367966 653.290894,202.499969  C653.712524,215.306122 652.779541,228.126266 653.819397,240.936539  C654.244568,246.173187 639.746277,257.886658 634.597412,256.774689  C632.494812,256.320587 630.410583,255.625381 628.286072,255.466293  C625.167114,255.232712 622.197510,253.727341 618.940002,254.583847  C615.913757,255.379547 612.818787,255.913651 609.721619,256.569794  C608.150024,255.243240 608.554077,253.468872 608.801086,251.951797  C610.092834,244.017471 610.204224,236.097397 608.818115,228.178299  C608.339111,225.441772 609.126770,223.565918 611.978516,223.006851  C620.974487,221.243286 627.733948,215.536499 634.758789,210.259445  C636.878174,208.667343 639.177673,207.315018 641.710815,205.682236  z"/>
+                            <path
+                                x-data="{part: 25}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M664.243408,107.498985  C646.643372,107.809052 629.414246,109.152466 611.787537,104.504227  C623.706238,96.632423 639.529968,92.307991 638.855713,73.214279  C651.387024,77.671791 663.095703,79.577660 674.756836,71.773125  C674.617065,79.829681 674.849365,87.251907 680.247986,93.087486  C685.388855,98.644409 692.425049,101.477646 699.138977,105.268639  C696.598755,107.615105 693.925049,107.976845 691.104919,107.956696  C682.290222,107.893700 673.468140,108.255447 664.243408,107.498985  z"/>
+                            <path
+                                x-data="{part: 29}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M749.831177,158.213730  C758.943726,169.735596 762.157837,183.464722 766.809082,196.565018  C767.247192,197.798920 767.230347,198.811722 766.323853,199.775177  C761.478882,204.924896 756.209656,209.312561 748.943604,210.717514  C746.582214,211.174088 744.855347,210.399628 743.684509,208.796432  C733.800842,195.263367 723.392090,182.094818 714.797974,167.658234  C714.586548,167.303040 714.771301,166.711990 714.771301,165.883133  C728.360168,168.506088 736.516663,160.695557 743.533997,150.746811  C747.002075,152.196259 748.012634,155.317810 749.831177,158.213730  z"/>
+                            <path
+                                x-data="{part: 2}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M205.648407,72.979401  C205.648834,53.171730 205.634338,33.859650 205.659439,14.547622  C205.666687,8.974465 206.379242,8.482091 211.790009,9.968708  C226.601151,14.038098 234.197952,27.417271 230.148102,42.341679  C229.644104,44.199032 229.009476,46.020939 228.508224,47.626034  C230.688034,49.430817 232.024841,47.244583 233.634430,47.524418  C236.282211,51.964897 234.390427,59.907539 229.382889,64.866844  C228.912735,64.453896 228.234711,64.123436 227.992477,63.593704  C227.375153,62.243652 227.106232,60.492168 225.108047,60.782310  C223.172882,61.063301 223.205551,63.013874 222.907288,64.335243  C221.642563,69.938232 218.695770,74.731987 215.971100,79.654076  C213.891632,83.410568 210.426544,84.427193 206.520676,85.253777  C205.059555,81.072701 205.902847,77.230621 205.648407,72.979401  z"/>
+                            <path
+                                x-data="{part: 24}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M681.251953,36.819908  C680.167664,39.809643 680.349670,42.481518 680.342285,45.136078  C680.337219,46.952438 680.671326,48.509567 682.907715,48.655415  C686.159912,48.867508 686.358154,51.101196 686.338684,53.614803  C686.273254,62.039787 681.817200,67.508827 673.908813,69.547867  C670.436157,70.443222 667.251099,72.397446 663.838684,73.595306  C657.403442,75.854286 655.628479,74.606697 655.631836,68.137421  C655.641174,50.355400 655.633850,32.573334 655.675781,14.791388  C655.688232,9.521235 656.535278,8.923537 661.521851,10.313524  C674.928467,14.050550 681.326172,22.480186 681.251953,36.819908  z"/>
+                            <path
+                                x-data="{part: 28}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M562.235107,167.354141  C564.063660,163.409546 565.709229,159.799423 567.715393,155.398270  C577.809692,161.642639 587.913025,167.859344 600.521851,165.376083  C601.043945,170.109314 597.964661,172.500778 596.258118,175.265442  C589.390564,186.391006 580.557190,196.234589 574.854736,208.153381  C573.651611,210.668045 571.713562,211.595886 568.811096,209.553314  C563.938721,206.124405 558.686340,203.240799 553.725342,199.930740  C550.492188,197.773544 548.987305,195.367188 552.015259,191.400284  C557.340759,184.423492 558.256897,175.414566 562.235107,167.354141  z"/>
+                            <path
+                                x-data="{part: 3}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M178.269470,97.272751  C184.146332,93.731926 186.887741,88.395515 188.618256,81.604408  C193.779205,87.004745 199.524155,89.377724 206.278641,88.620071  C213.263382,87.836594 216.628540,82.008499 221.368668,77.113976  C226.526169,91.564552 238.239395,98.773308 251.057297,105.558807  C247.929214,107.706314 244.658096,108.271042 241.268005,108.318192  C236.279648,108.387573 231.285477,108.475471 226.301529,108.315117  C220.235123,108.119919 214.432297,108.597145 209.057434,111.921547  C206.597107,113.443283 203.937790,113.198463 201.116974,111.712708  C195.283829,108.640312 189.090210,107.826141 182.416107,109.037216  C175.536743,110.285545 168.725403,109.255524 161.234695,105.674301  C167.639725,103.035736 173.075714,100.758018 178.269470,97.272751  z"/>
+
+                            <path
+                                x-data="{part: 1}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M202.351013,57.000076  C202.351273,66.803970 202.351273,76.107864 202.351273,86.082047  C187.802338,82.904282 187.046616,69.602493 181.887512,60.240051  C179.856369,60.650986 180.817505,62.618839 179.072250,63.137474  C176.231232,59.060814 175.061142,54.306232 174.765320,49.398209  C174.474518,44.573399 178.245010,46.374714 181.572098,46.430130  C176.886032,27.863623 179.648834,13.225356 202.350754,8.552912  C202.350754,25.004768 202.350754,40.752415 202.351013,57.000076  z"/>
+
+                            <path
+                                x-data="{part: 23}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M648.477783,10.130493  C652.511108,9.004154 653.544739,10.656282 653.531250,14.115608  C653.457703,32.916782 653.502258,51.718575 653.562805,70.519966  C653.573547,73.850090 653.267395,75.468513 649.010986,73.992592  C644.999207,72.601517 641.026917,70.965538 636.797852,69.996696  C631.602295,68.806427 624.116333,55.931431 624.696045,50.627331  C625.010742,47.747272 626.212830,47.056107 628.572021,48.747318  C629.582581,49.471672 630.300537,51.204578 631.823486,49.922020  C633.396729,48.597034 632.055786,47.104897 631.527954,45.835430  C627.652344,36.514267 627.503784,27.478518 633.518066,18.935312  C637.059082,13.905190 642.332642,11.649897 648.477783,10.130493  z"/>
+                            <path
+                                x-data="{part: 32}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M514.126770,288.832092  C519.070862,292.253326 519.284668,295.927429 517.703125,301.429382  C513.888367,314.699799 505.081848,324.394226 496.181274,335.716400  C496.316864,329.296082 502.038452,325.460266 500.079468,318.512268  C495.977051,324.823212 495.102753,331.637482 489.127869,336.578735  C488.388611,327.436829 494.187500,321.840973 496.694336,314.968933  C491.121826,320.844757 486.889130,327.583252 483.160553,335.769928  C480.696198,331.365143 483.104706,329.431396 484.352386,327.098022  C485.753479,324.477570 486.807007,321.665314 487.926422,318.901947  C488.945374,316.386597 491.514618,314.533081 491.350891,310.122681  C484.369202,315.855957 484.527130,325.315887 478.292297,330.130524  C477.672699,329.857605 477.053101,329.584717 476.433533,329.311798  C479.956238,320.266388 483.478912,311.220947 487.218231,301.619354  C481.243561,302.748993 479.301697,309.313354 473.512146,310.007782  C472.586853,306.933838 474.224762,304.644440 475.934845,302.920502  C482.119720,296.685516 487.975311,290.089600 495.512970,285.295807  C502.719116,280.712830 504.774567,280.691864 511.190826,286.343994  C512.061401,287.110901 512.941895,287.866669 514.126770,288.832092  z"/>
+                            <path
+                                x-data="{part: 11}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M361.797546,277.874786  C365.308502,275.154602 369.218414,274.155548 372.862946,272.577637  C374.085785,272.048218 374.980621,272.260193 376.058167,273.005676  C385.300385,279.399689 395.507507,284.501801 402.787445,293.498840  C404.356781,295.438293 405.888428,297.318817 407.278381,300.051575  C400.091187,303.100311 397.128632,294.341827 390.679565,294.912415  C392.580536,303.622314 402.670135,308.423706 402.251648,319.566254  C395.971252,313.599884 394.369476,305.245972 386.856323,302.051056  C390.569122,309.173492 396.566223,315.128021 397.777863,323.505493  C390.873993,318.774445 388.795807,310.176178 382.318787,305.098328  C383.027252,308.615417 384.952179,311.432007 386.877716,314.349701  C388.727264,317.152252 392.094940,319.552155 390.621246,324.506134  C384.728241,319.891449 381.949310,313.118591 376.445679,308.890381  C377.424377,313.559540 382.118622,316.513336 381.824280,321.659576  C379.503967,322.277313 378.639557,320.739868 377.653320,319.461823  C372.181671,312.371368 367.863281,304.487640 362.028442,297.604675  C357.904388,292.739807 358.174469,282.729675 361.797546,277.874786  z"/>
+                            <path
+                                x-data="{part: 33}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M826.887207,328.880493  C822.922180,325.706879 821.579773,320.462830 815.689270,317.636139  C818.604126,322.247772 820.809875,325.737579 823.132812,329.412781  C822.284424,329.632233 821.537598,329.980286 821.422180,329.833160  C814.817078,321.412781 805.852661,314.831787 801.803528,304.400238  C800.537476,301.138611 799.659607,297.814850 798.898560,294.434174  C798.323547,291.879913 798.776611,289.993286 801.661377,288.984589  C803.984253,288.172394 806.254944,287.090942 808.188416,285.406799  C814.124451,280.236237 815.941650,279.994415 822.722107,284.507690  C830.516602,289.695984 836.946838,296.475861 843.308899,303.273193  C844.344666,304.379852 845.852783,305.938507 844.175171,307.580658  C842.796875,308.929901 841.241150,307.734558 840.100464,306.966858  C838.462097,305.864166 837.099609,304.352875 835.612976,303.023224  C834.283264,301.833923 832.855530,300.909149 831.272339,302.530975  C829.891907,303.945038 830.758240,305.262177 831.672546,306.534851  C835.385620,311.703186 836.972717,317.957214 840.229614,323.367371  C840.775757,324.274628 841.491028,325.407776 840.138550,327.335785  C834.982666,322.660278 833.554077,315.335999 828.143005,311.070129  C830.069824,318.847412 837.371216,324.191162 837.539490,332.764160  C830.092468,327.846710 828.876526,317.816986 821.820129,312.686035  C821.431335,312.948120 821.042542,313.210175 820.653748,313.472260  C823.784241,318.925964 826.914795,324.379639 830.048340,329.838562  C828.389282,330.802948 827.916809,329.546387 826.887207,328.880493  z"/>
+                            <path
+                                x-data="{part: 49}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M164.155411,412.380524  C174.757248,420.649048 186.013519,419.771973 197.618607,415.206635  C200.123505,428.006500 194.585052,439.074249 195.359879,451.875153  C183.995346,446.875244 173.252151,443.786560 162.534271,451.155029  C161.635895,438.633972 161.525589,426.925385 161.711945,415.213348  C161.733185,413.879974 161.284622,411.921448 164.155411,412.380524  z"/>
+                            <path
+                                x-data="{part: 10}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M35.942818,317.960083  C39.162674,314.550568 43.094444,311.935272 42.122395,306.421997  C38.667767,310.182922 35.213142,313.943817 31.196440,318.316650  C31.010523,313.450562 34.479515,310.590424 34.409000,306.418060  C31.485638,306.216309 30.962238,308.595428 30.345936,310.416229  C28.657589,315.404236 25.335579,319.386200 22.509884,323.667694  C21.643372,324.980621 20.531425,326.431152 18.130056,325.639984  C18.328886,321.443390 20.756851,318.510529 23.319870,315.454895  C25.821815,312.472076 28.211956,309.269348 29.500992,304.093750  C22.289894,307.395874 22.446989,316.664612 15.034065,318.538727  C14.024117,313.396271 18.121140,310.567993 19.859339,306.862793  C21.252989,303.892120 23.792873,301.516724 24.829470,298.285583  C25.221804,297.062622 26.170744,295.844574 24.816608,294.643799  C23.441845,293.424713 22.104052,294.135040 20.645943,294.595490  C17.238209,295.671539 16.120670,299.916687 12.406058,300.612946  C10.986382,297.994690 12.937372,296.744049 14.291039,295.435059  C17.412603,292.416504 20.112944,289.063782 22.655481,285.563812  C26.325369,280.512085 32.277012,279.325012 37.508984,276.979767  C39.044117,276.291626 40.210117,277.854218 41.317215,278.852783  C44.823471,282.015381 48.524036,284.764282 53.577507,284.712372  C55.816578,284.689362 56.499626,286.042999 56.139668,287.997620  C54.615471,296.274261 51.791794,303.919739 45.921284,310.261475  C42.889935,313.536194 40.312744,317.228119 37.468502,320.680634  C36.230415,322.183472 34.916672,323.676605 32.248344,324.336334  C32.651958,321.427094 34.006916,319.733734 35.942818,317.960083  z"/>
+                            <path
+                                x-data="{part: 50}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M245.745117,422.606567  C244.851944,430.914917 245.543793,438.796997 246.165054,447.166260  C240.118820,446.240967 234.797348,444.800537 229.312454,445.382202  C223.909073,445.955292 218.654510,447.356079 212.681641,448.965454  C212.681641,443.304596 212.188477,438.288361 212.818909,433.417603  C213.462585,428.444519 213.622055,423.507233 213.668915,418.534332  C213.689819,416.315002 214.071381,414.269135 216.950150,414.885620  C228.129974,417.279938 238.329071,415.162323 248.036667,407.600037  C247.228119,413.110321 246.562988,417.643188 245.745117,422.606567  z"/>
+                            <path
+                                x-data="{part: 16}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M187.698334,291.265350  C187.014236,289.796295 185.522476,289.115112 185.955582,287.090515  C199.004059,287.090515 212.117188,287.090515 226.448120,287.090515  C218.812515,296.484650 210.742493,304.397095 206.684082,315.636780  C197.703369,309.112183 194.419281,299.040405 187.698334,291.265350  z"/>
+                            <path
+                                x-data="{part: 46}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M642.470703,261.306458  C641.552917,259.745544 642.160156,258.801758 642.999573,257.900818  C646.841125,253.777924 650.677246,249.649963 654.480103,245.561676  C660.824402,248.877853 664.718689,253.717300 669.515869,257.398193  C671.084106,258.601440 672.098511,260.541382 670.870483,262.223175  C666.343262,268.422974 661.553833,274.431335 656.529541,280.944000  C651.663269,274.142639 647.177063,267.872528 642.470703,261.306458  z"/>
+                            <path
+                                x-data="{part: 47}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M634.915527,573.082520  C637.378784,573.195801 639.371521,573.280640 641.359436,573.429932  C643.312866,573.576660 644.199219,574.578369 644.364990,576.631470  C644.590637,579.426514 644.919556,582.272034 645.704956,584.948975  C646.821045,588.752930 645.500427,590.475403 641.748596,590.320862  C635.501099,590.063538 629.083679,591.597107 623.068359,588.603088  C622.050720,588.096619 620.164246,587.997009 620.368164,586.823975  C621.095703,582.638855 621.780273,578.319458 623.457214,574.476807  C624.373901,572.376343 627.659424,573.188354 629.947266,573.095520  C631.443542,573.034729 632.944214,573.082947 634.915527,573.082520  z"/>
+                            <path
+                                x-data="{part: 48}"
+                                class="fill-current text-green-500 opacity-25 hover:opacity-50 cursor-pointer"
+                                :class="{
+                                    'text-red-500 opacity-50': isInjured(part),
+                                    'text-blue-500 opacity-50': isPartSelected(part),
+                                }"
+                                x-on:mouseover="showTooltip($event, part)"
+                                x-on:mouseleave="hideTooltip"
+                                x-on:click="selectPart(part)"
+                                d="M670.566040,571.532837  C676.685364,570.244751 682.989746,573.751831 687.756714,568.347839  C689.784119,570.849731 689.767578,573.115112 690.134949,575.102173  C691.164246,580.669495 687.927734,584.198425 680.646484,585.998962  C668.673218,588.959717 668.046936,588.481445 668.677979,576.582458  C668.769165,574.862793 668.100525,572.840088 670.566040,571.532837  z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Report / injury entry wrapper -->
+                <div class="col-span-3 md:col-span-1 my-8 md:my-0 md:border-l-2 md:border-green-800">
+
+                    <!-- Injury selection -->
+                    <div x-show="selectedPart !== 0" class="relative w-full px-4" x-cloak>
+                        <h2 class="text-lg bg-zinc-200 font-semibold md:text-2xl px-4 py-2 mb-4 rounded-lg" x-text="bodyParts.find(part => part.value === selectedPart).name"></h2>
+                        <div class="px-4">
+                            <p class="hidden md:visible mb-4 font-semibold">Injury type</p>
+                            <template x-for="type in injuryTypes">
+                                <label class="flex gap-2 items-center py-1 px-2 mb-1 rounded-lg cursor-pointer hover:border hover:border-green-800" :class="injuries[selectedPart][type.value] ? 'bg-red-200' : ''">
+                                    <input class="hidden" type="checkbox" x-model="injuries[selectedPart][type.value]">
+                                    <span x-text="type.name"></span>
+                                </label>
+                            </template>
+                            <p class="mt-4 md:mt-8 font-semibold">Description / notes</p>
+                            <textarea class="w-full h-32 mt-4" placeholder="Describe this injury" x-model="injuries[selectedPart]['description']"></textarea>
+                        </div>
+                        <button class="absolute top-2 right-6 block p-2 px-3 border rounded-lg text-xs bg-zinc-300 hover:bg-green-500 text-white" x-on:click="selectedPart = 0">✔️</button>
+                    </div>
+
+                    <!-- Injury report -->
+                    <div x-show="selectedPart === 0" class="px-4">
+                        <h2 class="text-lg md:text-4xl font-semibold tracking-tight mb-4 pb-4 text-center text-green-800">Injury Report</h2>
+                        <template x-for="(injury, index) in injuries">
+                            <template x-if="isInjured(index)">
+                                <p class="mr-4 text-sm border-b pb-2 mb-2 cursor-pointer" x-on:click="selectPart(index)">
+                                    <span x-text="bodyParts[index].name" class="block font-semibold"></span>
+                                    <span class="text-red-500" x-text="getInjury(index).injuries"></span>
+                                    <span class="block text-zinc-500" x-show="getInjury(index).description !== ''" x-text="getInjury(index).description"></span>
+                                </p>
+                            </template>
+                        </template>
+                        <button x-show="anyInjuries" class="bg-green-800 text-white w-full px-6 py-2 rounded-lg mt-4 hover:bg-green-700" x-on:click="submitReport">Submit Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="fixed items-center bottom-0 left-0 right-0 p-2 grid grid-cols-3 text-xs md:text-base bg-zinc-900 text-white">
+            <a href="https://mjp.co" target="_blank" class="flex items-center gap-4 text-amber-500 hover:text-amber-400">
+                <img src="https://mjp.co/logo-chrome.png" class="hidden md:block w-16">
+                By Matthew Page
+            </a>
+            <span class="text-center text-zinc-500 text-xs">June 2024</span>
+            <a href="https://github.com/MatthewPageUK/injury-reporting-demo" target="_blank" class="text-amber-500 text-right hover:text-amber-400">Github</a>
+        </p>
+    </body>
+</html>
